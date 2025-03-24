@@ -92,17 +92,66 @@ class MetroAgi:
         - Her adımda toplam süreyi hesaplayın
         - En düşük süreye sahip rotayı seçin
         """
-        # TODO: Bu fonksiyonu tamamlayın
-        pass
+        # Başlangıç ve hedef istasyonlarının varlığını kontrol et(eğer bu duraklardan birisi yoksa none döndür)
         if baslangic_id not in self.istasyonlar or hedef_id not in self.istasyonlar:
             return None
 
+        # Başlangıç ve hedef istasyonlarını al
         baslangic = self.istasyonlar[baslangic_id]
         hedef = self.istasyonlar[hedef_id]
-        ziyaret_edildi = set()
+        ziyaret_edildi = set() # Ziyaret edilen istasyonları takip etmek için set yapısını kullandık(çünkü ziyaret edilen istasyonları bir daha ziyaret etmek istemiyoruz)  
 
+        open_list = []  # Öncelik kuyruğu oluşturduk heapq için
 
-graph.metro_station_graph(graph.G)
+        # id eklememin sebebi iki tane nesne karşılaştıralamaz hatası almak için
+
+        # id eklememimizin sebebi iki tane nesne karşılaştıralamaz hatası almamak için(iki yol birbirine eşit olduğu zaman id e bakıp karar veriyor)
+        heapq.heappush(open_list, (heuristic_values.get(baslangic_id, 0), 0, id(baslangic), baslangic, []))  # (f, g, id, istasyon, yol)
+
+        # open_list boş olana kadar döngü çalışacak
+        while open_list:
+            _, g, _, istasyon, rota = heapq.heappop(open_list)  # Kullanmayacaklarımızı _ ile belirttik
+
+            if istasyon in ziyaret_edildi:
+                continue  # Eğer istasyon zaten ziyaret edildiyse atla
+
+            rota.append(istasyon)  # İstasyon ziyaret edilmemiş ise rotaya ekle
+
+            # Hedefe ulaştıysak rotayı ve toplam süreyi döndür
+            if istasyon is hedef:
+                return rota, g
+
+            ziyaret_edildi.add(istasyon)  # Hedefe ulaşmadıysak, ziyaret edildi olarak işaretleriz(yani ziyaret_edildi listesine ekleriz)
+
+            # Komşuları gezeriz ve uygun olanları heapq ya ekleriz
+            for komsu, sure in istasyon.komsular: # Bu sefer süre lazım olduğu için "_" kullanmadık
+                if komsu in ziyaret_edildi:
+                    continue
+                
+                g_new = g + sure  # g(n)'i güncelledik
+                f_new = g_new + heuristic_values.get(komsu.idx, 0)  # h(n) ile g(n)'i toplayarak yeni f(n) değerini buluruz
+                heapq.heappush(open_list, (f_new, g_new, id(komsu), komsu, rota[:]))  # Değişikleri heappush ettik
+
+        # Eğer hedefe ulaşamazsak None döndürürüz
+        return None
+
+# A* algoritması kullanmak için sezgisel değer oluşturdum
+heuristic_values = {
+    "K1": 1,
+    "K2": 0,
+    "K3": 1,
+    "K4": 0,
+
+    "M1": 0,
+    "M2": 1,
+    "M3": 0,
+    "M4": 1,
+
+    "T1": 0,
+    "T2": 1,
+    "T3": 1,
+    "T4": 0
+}
 
 # Örnek Kullanım
 if __name__ == "__main__":
@@ -183,3 +232,5 @@ if __name__ == "__main__":
     if sonuc:
         rota, sure = sonuc
         print(f"En hızlı rota ({sure} dakika):", " -> ".join(i.ad for i in rota)) 
+
+graph.metro_station_graph(graph.G) #graph.py dosyasındaki oluşturduğumuz fonksiyonu çağırdık
