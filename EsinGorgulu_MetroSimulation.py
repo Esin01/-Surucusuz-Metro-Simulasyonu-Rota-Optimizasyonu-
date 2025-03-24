@@ -1,6 +1,7 @@
 from collections import defaultdict, deque
 import heapq
 from typing import Dict, List, Set, Tuple, Optional
+import graph
 
 class Istasyon:
     def __init__(self, idx: str, ad: str, hat: str):
@@ -99,6 +100,9 @@ class MetroAgi:
         baslangic = self.istasyonlar[baslangic_id]
         hedef = self.istasyonlar[hedef_id]
         ziyaret_edildi = set()
+
+
+graph.metro_station_graph(graph.G)
 
 # Örnek Kullanım
 if __name__ == "__main__":
